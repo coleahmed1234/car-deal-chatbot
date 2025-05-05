@@ -1,10 +1,15 @@
 export default async function handler(req, res) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
+    const orgId = process.env.OPENAI_ORG_ID;
     const userInput = req.body.message;
 
     if (!apiKey) {
-      return res.status(500).json({ reply: "OpenAI API key is missing in environment variables." });
+      return res.status(500).json({ reply: "OpenAI API key is missing." });
+    }
+
+    if (!orgId) {
+      return res.status(500).json({ reply: "OpenAI Organization ID is missing." });
     }
 
     if (!userInput) {
@@ -28,6 +33,7 @@ export default async function handler(req, res) {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "OpenAI-Organization": orgId,
       },
       body: JSON.stringify({
         model: "gpt-4",
@@ -37,7 +43,6 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // Show errors from OpenAI directly
     if (data.error) {
       return res.status(500).json({ reply: `OpenAI error: ${data.error.message}` });
     }
@@ -46,7 +51,7 @@ export default async function handler(req, res) {
     res.status(200).json({ reply });
 
   } catch (error) {
-    console.error("Backend error:", error);
+    console.error("OpenAI backend error:", error);
     res.status(500).json({ reply: "Server error: " + error.message });
   }
 }
